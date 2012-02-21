@@ -1,8 +1,18 @@
+package.path = table.concat({
+	'libs/?/init.lua',
+	'libs/?.lua',
+
+	'',
+}, ';') .. package.path
+
 local zmq = require"zmq"
 local lpeg = require"lpeg"
 local mongo = require"mongo"
+local xpath = require"xpath"
+
 local db = mongo.Connection.New()
 db:connect"localhost"
+
 
 local field =
 	lpeg.P(' ')^0
