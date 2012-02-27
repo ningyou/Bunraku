@@ -1,6 +1,3 @@
-local nixio = require'nixio'
-local pipe = "/tmp/bunraku.pipe"
-
 local coreFunc, coreError = loadfile("bunraku.lua")
 if not coreFunc then
 	return
