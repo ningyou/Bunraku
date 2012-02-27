@@ -6,7 +6,6 @@ package.path = table.concat({
 }, ';') .. package.path
 
 local zmq = require"zmq"
-local zmq_poller = require"zmq.poller"
 local lpeg = require"lpeg"
 local mongo = require"mongo"
 local xpath = require"xpath"
