@@ -20,6 +20,13 @@ function _M:Fetch(aid)
 				local xml = zlib.inflate() (data)
 				local xml_tree = lom.parse(xml)
 				if xml_tree then
+					local err = (xpath.selectNodes(xml_tree, '/error/text()')[1] or nil)
+
+					if err then
+						print("Error: " .. err)
+						return
+					end
+
 					local input = {
 						title = (xpath.selectNodes(xml_tree, '/anime/titles/title[@type="main"]/text()')[1] or nil),
 						episodecount = (xpath.selectNodes(xml_tree, '/anime/episodecount/text()')[1] or nil),
@@ -28,11 +35,10 @@ function _M:Fetch(aid)
 						enddate = (xpath.selectNodes(xml_tree, '/anime/enddate/text()')[1] or nil),
 						type = (xpath.selectNodes(xml_tree, '/anime/type/text()')[1] or nil),
 					}
-					
+
 					for k,v in next, input do
 						cache:hset("anidb:"..aid, k, v)
 					end
-
 					cache:expire("anidb:"..aid, 604800)
 					print("Successfully added anime: " .. input.title)
 				else
