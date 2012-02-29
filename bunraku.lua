@@ -6,12 +6,10 @@ package.path = table.concat({
 }, ';') .. package.path
 
 local zmq = require"zmq"
-local lpeg = require"lpeg"
 local mongo = require"mongo"
-local xpath = require"xpath"
 local ev = require"ev"
-local loop = ev.Loop.default
 local csv = require"csv"
+local loop = ev.Loop.default
 local db = mongo.Connection.New()
 
 db:connect"localhost"
@@ -21,26 +19,22 @@ local bunraku = {
 	loop = loop,
 }
 
-local trim = function(s)
-	return s:match('^()%s*$') and '' or s:match('^%s*(.*%S)')
-end
-
 function bunraku:HandleMsg(data)
 	local parse = csv(data)
 	if parse then
-		local type = parse[1]
-		for i = 2, #parse do
-			print(type, trim(parse[i]))
+		local mName = parse[1]
+		if self[mName] then
+			for i = 2, #parse do
+				self[mName]:Fetch(parse[i])
+			end
 		end
 	end
-end
-
-function bunraku:EnableModule(mName, mTable)
 end
 
 function bunraku:LoadModule(mName)
 	local mFile, mError = loadfile('modules/' .. mName.. '.lua')
 	if not mFile then
+		print("Could not load module: " .. mName)
 		return
 	end
 
@@ -55,7 +49,16 @@ function bunraku:LoadModule(mName)
 	local success, message = pcall(mFile, self)
 	if not success then
 	else
-		self:EnableModule(mName, message)
+		print("Loaded module: " .. mName)
+		self[mName] = message
+	end
+end
+
+function bunraku:LoadModules()
+	if self.modules then
+		for _, m in next, self.modules do
+			self:LoadModule(m)
+		end
 	end
 end
 
@@ -77,7 +80,8 @@ function bunraku:Reload()
 		message.ctx = self.ctx
 		message.socket = self.socket
 		message.loop = self.loop
-		message.db = self.db
+		message.db = self.dbi
+		message.modules = self.modules
 
 		self = message
 
@@ -93,6 +97,10 @@ end
 
 function bunraku:Init()
 	if not self.init then
+		self.modules = {
+			"anidb",
+		}
+		
 		self.ctx = zmq.init(1)
 		self.socket = self.ctx:socket(zmq.SUB)
 		self.socket:setopt(zmq.SUBSCRIBE, "")
@@ -121,6 +129,8 @@ function bunraku:Init()
 		self.s_io_read:stop(loop)
 	end, 
 	self.socket:getopt(zmq.FD), ev.READ)
+
+	self:LoadModules()
 end
 
 return bunraku
