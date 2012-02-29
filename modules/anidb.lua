@@ -21,6 +21,7 @@ function _M:Fetch(aid)
 				local xml_tree = lom.parse(xml)
 				if xml_tree then
 					local input = {
+						title = (xpath.selectNodes(xml_tree, '/anime/titles/title[@type="main"]/text()')[1] or nil),
 						episodecount = (xpath.selectNodes(xml_tree, '/anime/episodecount/text()')[1] or nil),
 						description = (xpath.selectNodes(xml_tree, '/anime/description/text()')[1] or nil),
 						startdate = (xpath.selectNodes(xml_tree, '/anime/startdate/text()')[1] or nil),
@@ -33,7 +34,7 @@ function _M:Fetch(aid)
 					end
 
 					cache:expire("anidb:"..aid, 604800)
-					print("Successfully added anime with id: " .. aid)
+					print("Successfully added anime: " .. input.title)
 				else
 					print("Could not parse xml")
 					return
