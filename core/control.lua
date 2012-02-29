@@ -8,14 +8,19 @@ local commands = {
 	reload = function()
 		bunraku:Reload()
 	end,
+	load = function(name)
+		print("Loading: " .. name)
+		bunraku:LoadModule(name)
+	end,
 }
 
 nixio.fs.unlink(pipe)
 
 local command = ev.Stat.new(function(loop, stat, revents)
 	for line in io.lines() do
-		if commands[line] then
-			pcall(commands[line])
+		local command, argument = line:match('^(%S+) ?(.*)$')
+		if commands[command] then
+			pcall(commands[command], argument)
 		end
 	end
 end, pipe)
