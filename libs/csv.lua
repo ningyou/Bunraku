@@ -1,3 +1,5 @@
+local lpeg = require'lpeg'
+
 local field =
 	lpeg.P(' ')^0
 	* '"' * lpeg.Cs(((lpeg.P(1) - '"') + lpeg.P'""' / '"')^0) * '"'
