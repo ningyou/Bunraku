@@ -24,8 +24,7 @@ function _M:Fetch(aid, forceupdate)
 					local err = (xpath.selectNodes(xml_tree, '/error/text()')[1] or nil)
 
 					if err then
-						print("Error: " .. err)
-						return
+						return bunraku:Log('error', err)
 					end
 
 					local input = {
