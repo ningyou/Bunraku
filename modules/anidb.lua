@@ -9,13 +9,14 @@ local _M = {}
 function _M:Fetch(aid, forceupdate)
 	local cache = Redis.connect('127.0.0.1', 6379)
 	local aid = tonumber(aid)
-	if cache:exists("anidb:"..aid) and (cache:ttl("anidb:"..aid) > 3600) and not forceupdate then
+	local anidbkey = "anidb:"..aid
+	if cache:exists(anidbkey) and (cache:ttl(anidbkey) > 3600) and not forceupdate then
 		print("Cache already exists for id: " ..aid)
 		return
 	else
 		print("Fetching anime with id: ".. aid)
 		-- Create the hashkey
-		cache:hset("anidb:"..aid, "fetching", "true")
+		cache:hset(anidbkey, "fetching", "true")
 		simplehttp(
 			('http://api.anidb.net:9001/httpapi?request=anime&aid=%d&client=ivarto&clientver=0&protover=1'):format(aid),
 			function(data)
@@ -39,9 +40,9 @@ function _M:Fetch(aid, forceupdate)
 					}
 
 					for k,v in next, input do
-						cache:hset("anidb:"..aid, k, v)
+						cache:hset(anidbkey, k, v)
 					end
-					cache:expire("anidb:"..aid, 604800)
+					cache:expire(anidbkey, 604800)
 					print("Successfully added anime: " .. input.title)
 				else
 					print("Could not parse xml")
@@ -49,7 +50,7 @@ function _M:Fetch(aid, forceupdate)
 				end
 			end
 		)
-		cache:hdel("anidb:"..aid, "fetching")
+		cache:hdel(anidbkey, "fetching")
 	end
 end
 
