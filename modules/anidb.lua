@@ -16,7 +16,7 @@ function _M:Fetch(aid, forceupdate)
 		-- Create the hashkey
 		cache:hset(anidbkey, "fetching", "true")
 		simplehttp(
-			('http://api.anidb.net:9001/httpapi?request=anime&aid=%d&client=ivarto&clientver=0&protover=1'):format(aid),
+			('http://api.anidb.net:9001/httpapi?request=anime&aid=%d&client=bunraku&clientver=1&protover=1'):format(aid),
 			function(data)
 				local xml = zlib.inflate() (data)
 				local xml_tree = lom.parse(xml)
