@@ -11,6 +11,7 @@ local ev = require"ev"
 local csv = require"csv"
 local loop = ev.Loop.default
 local db = mongo.Connection.New()
+local socket = require"socket"
 require'logging.console'
 
 local log = logging.console()
@@ -47,6 +48,7 @@ function bunraku:HandleMsg(data)
 		if self[mName] then
 			for i = 2, #parse do
 				self[mName]:Fetch(parse[i])
+				socket.sleep(2)
 			end
 		end
 	end
