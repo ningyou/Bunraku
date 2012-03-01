@@ -11,10 +11,8 @@ function _M:Fetch(aid, forceupdate)
 	local aid = tonumber(aid)
 	local anidbkey = "anidb:"..aid
 	if cache:exists(anidbkey) and (cache:ttl(anidbkey) > 3600) and not forceupdate then
-		print("Cache already exists for id: " ..aid)
-		return
+		return bunraku:Log('info', 'Cache already exists for: %s.', cache:hget(anidbkey, 'title'))
 	else
-		print("Fetching anime with id: ".. aid)
 		-- Create the hashkey
 		cache:hset(anidbkey, "fetching", "true")
 		simplehttp(
@@ -42,11 +40,12 @@ function _M:Fetch(aid, forceupdate)
 					for k,v in next, input do
 						cache:hset(anidbkey, k, v)
 					end
+
 					cache:expire(anidbkey, 604800)
-					print("Successfully added anime: " .. input.title)
+					cache:quit()
+					bunraku:Log('info', 'Successfully added anime: %s.', input.title)
 				else
-					print("Could not parse xml")
-					return
+					return bunraku:Log('error', 'Unable to parse XML')
 				end
 			end
 		)

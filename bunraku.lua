@@ -11,13 +11,34 @@ local ev = require"ev"
 local csv = require"csv"
 local loop = ev.Loop.default
 local db = mongo.Connection.New()
+require'logging.console'
 
+local log = logging.console()
 db:connect"localhost"
 
 local bunraku = {
 	db = db,
 	loop = loop,
 }
+
+local safeFormat = function(format, ...)
+	if select('#', ...) > 0 then
+		local success, message = pcall(string.format, format, ...)
+		if success then
+			return message
+		end
+	else
+		return format
+	end
+end
+
+function bunraku:Log(level, ...)
+	local message = safeFormat(...)
+
+	if message then
+		log[level](log, message)
+	end
+end
 
 function bunraku:HandleMsg(data)
 	local parse = csv(data)
@@ -34,8 +55,7 @@ end
 function bunraku:LoadModule(mName)
 	local mFile, mError = loadfile('modules/' .. mName.. '.lua')
 	if not mFile then
-		print("Could not load module: " .. mName)
-		return
+		return self:Log('error', 'Unable to load module %s: %s.', mFile, mError)
 	end
 
 	local env = {
@@ -48,8 +68,8 @@ function bunraku:LoadModule(mName)
 
 	local success, message = pcall(mFile, self)
 	if not success then
+		self:Log('error', 'Unable to execute module %s: %s', mFile, message)
 	else
-		print("Loaded module: " .. mName)
 		self[mName] = message
 	end
 end
@@ -65,14 +85,12 @@ end
 function bunraku:Reload()
 	local coreFunc, coreError = loadfile'bunraku.lua'
 	if not coreFunc then
-		print(coreError)
-		return
+		return self:Log('error', 'Unable to reload core: %s.', coreError)
 	end
 
 	local success, message = pcall(coreFunc)
 	if not success then
-		print("Could not reload")
-		return
+		return self:Log('error', 'Unable to execute new core: %s.', message)
 	else
 		self.control:stop(self.loop)
 		self.s_io_idle:stop(self.loop)
@@ -91,7 +109,7 @@ function bunraku:Reload()
 		self:Init()
 
 		self.s_io_idle:start(loop)
-		print("Successfully reloaded")
+		self:Log('info', 'Successfully reloaded core.')
 	end
 end
 
