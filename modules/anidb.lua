@@ -52,8 +52,6 @@ function _M:Fetch(aid)
 	local cache = Redis.connect('127.0.0.1', 6379)
 	local aid = tonumber(aid)
 	local anidbkey = "anidb:"..aid
-	-- Create the hashkey
-	cache:hset(anidbkey, "fetching", "true")
 	simplehttp(
 		('http://api.anidb.net:9001/httpapi?request=anime&aid=%d&client=bunraku&clientver=1&protover=1'):format(aid),
 		function(data)
@@ -92,7 +90,6 @@ function _M:Fetch(aid)
 			bunraku:Log('info', 'Successfully added anime: %s.', input.title)
 		end
 	)
-	cache:hdel(anidbkey, "fetching")
 end
 
 return _M
