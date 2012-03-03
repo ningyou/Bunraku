@@ -11,5 +11,7 @@ else
 	bunraku:Init()
 
 	bunraku.s_io_idle:start(bunraku.loop)
+	bunraku:Log('info', "Bunraku loaded, let the show begin.")
+
 	bunraku.loop:loop()
 end
