@@ -43,7 +43,7 @@ end
 
 function bunraku:HandleMsg(data)
 	local data = csv(data)
-	if not data then 
+	if not data then
 		return self:Log('error', 'Unable to parse CSV')
 	end
 	
@@ -51,14 +51,8 @@ function bunraku:HandleMsg(data)
 	if not self[mName] then
 		return self:Log('error', 'Trying to use module that is not loaded: %s', mName)
 	end
-		
-	for i = 2, #data do
-		self[mName]:Queue(data[i])
-	end
-	
-	if self[mName].queue[1] then
-		self[mName].timer:start(loop)
-	end
+
+	self[mName]:Queue(data)
 end
 
 function bunraku:LoadModule(mName)

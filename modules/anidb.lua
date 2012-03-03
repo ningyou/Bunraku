@@ -2,6 +2,8 @@ local simplehttp = require'simplehttp'
 local xpath = require'xpath'
 local lom = require'lxp.lom'
 local zlib = require'zlib'
+local ev = require'ev'
+local loop = ev.Loop.default
 require'redis'
 
 local _M = {}
@@ -23,25 +25,30 @@ _M.timer = ev.Timer.new(function(loop, timer, revents)
 	end
 end, 2, 2)
 
-function _M:Queue(aid)
+function _M:Queue(data, force)
 	local cache = Redis.connect('127.0.0.1', 6379)
-	if not cache then
+	if not cache:ping() then
 		return bunraku:Log('error', 'Unable to connect to cache database')
 	end
-
-	local aid = tonumber(aid)
-	local key = "anidb:"..aid
-	if cache:exists(key) and (cache:ttl(key) > 86400) then
-		bunraku:Log('info', 'Cache already exists for: %s.', cache:hget(key, 'title'))
-	elseif tableHasValue(_M.queue, id) then
-		bunraku:Log('info', 'Request for AniDB id %s is already queued', aid)
-	else
-		table.insert(_M.queue, aid)
+	
+	for i = 2, #data do
+		local aid = tonumber(data[i])
+		local key = "anidb:"..aid
+		if cache:exists(key) and (cache:ttl(key) > 86400) and not force then
+			bunraku:Log('info', 'Cache already exists for: %s.', cache:hget(key, 'title'))
+		elseif tableHasValue(_M.queue, id) then
+			bunraku:Log('info', 'Request for AniDB id %s is already queued', aid)
+		else
+			table.insert(_M.queue, aid)
+		end
+	end
+	if _M.queue[1] and not _M.timer:is_active() then
+		_M.timer:start(loop)
 	end
 	cache:quit()
 end
 
-function _M:Fetch(aid, forceupdate)
+function _M:Fetch(aid)
 	local cache = Redis.connect('127.0.0.1', 6379)
 	local aid = tonumber(aid)
 	local anidbkey = "anidb:"..aid
@@ -57,7 +64,7 @@ function _M:Fetch(aid, forceupdate)
 				return bunraku:Log('error', 'Unable to parse XML')
 			end
 			
-			local err = (xpath.selectNodes(xml_tree, '/error/text()')[1] or nil)
+			local err = xpath.selectNodes(xml_tree, '/error/text()')[1]
 			if err then
 				return bunraku:Log('error', err)
 			end
