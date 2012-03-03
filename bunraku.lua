@@ -33,6 +33,14 @@ local safeFormat = function(format, ...)
 	end
 end
 
+local tableHasValue = function(table, value)
+	if type(table) ~= 'table' then return end
+
+	for _,v in next, table do
+		if v == value then return true end
+	end
+end
+
 function bunraku:Log(level, ...)
 	local message = safeFormat(...)
 
@@ -42,14 +50,31 @@ function bunraku:Log(level, ...)
 end
 
 function bunraku:HandleMsg(data)
-	local parse = csv(data)
-	if parse then
-		local mName = parse[1]
-		if self[mName] then
-			for i = 2, #parse do
-				self[mName]:Fetch(parse[i])
-				socket.sleep(2)
-			end
+	local data = csv(data)
+	if not data then 
+		return self:Log('error', 'Unable to parse CSV')
+	end
+	
+	local mName = data[1]
+	if not self[mName] then
+		return self:Log('error', 'Trying to use module that is not loaded: %s', mName)
+	end
+	
+	local cache = Redis.connect('127.0.0.1', 6379)
+	if not cache then
+		return self:Log('error', 'Unable to connect to cache database')
+	end
+	
+	for i = 2, #data do
+		local id = tonumber(data[i])
+		local key = mName..":"..id
+		if cache:exists(key) and (cache:ttl(key) > 3600) then
+			self:Log('info', 'Cache already exists for: %s.', cache:hget(key, 'title'))
+		elseif tableHasValue(self[mName].queue, id) then
+			self:Log('info', 'Request for AniDB id %s is already queued', id)
+		else
+			table.insert(self[mName].queue, id)
+			self[mName].timer:start(loop)
 		end
 	end
 end
