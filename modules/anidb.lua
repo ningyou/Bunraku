@@ -52,31 +52,35 @@ function _M:Fetch(aid, forceupdate)
 		function(data)
 			local xml = zlib.inflate() (data)
 			local xml_tree = lom.parse(xml)
-			if xml_tree then
-				local err = (xpath.selectNodes(xml_tree, '/error/text()')[1] or nil)
-					if err then
-					return bunraku:Log('error', err)
-				end
 
-				local input = {
-					title = xpath.selectNodes(xml_tree, '/anime/titles/title[@type="main"]/text()')[1],
-					episodecount = xpath.selectNodes(xml_tree, '/anime/episodecount/text()')[1],
-					description = xpath.selectNodes(xml_tree, '/anime/description/text()')[1],
-					startdate = xpath.selectNodes(xml_tree, '/anime/startdate/text()')[1],
-					enddate = xpath.selectNodes(xml_tree, '/anime/enddate/text()')[1],
-					type = xpath.selectNodes(xml_tree, '/anime/type/text()')[1],
-				}
-
-				for k,v in next, input do
-					cache:hset(anidbkey, k, v)
-				end
-
-				cache:expire(anidbkey, 604800)
-				cache:quit()
-				bunraku:Log('info', 'Successfully added anime: %s.', input.title)
-			else
+			if not xml_tree then
 				return bunraku:Log('error', 'Unable to parse XML')
 			end
+			
+			local err = (xpath.selectNodes(xml_tree, '/error/text()')[1] or nil)
+			if err then
+				return bunraku:Log('error', err)
+			end
+
+			local input = {
+				title = xpath.selectNodes(xml_tree, '/anime/titles/title[@type="main"]/text()')[1],
+				episodecount = xpath.selectNodes(xml_tree, '/anime/episodecount/text()')[1],
+				description = xpath.selectNodes(xml_tree, '/anime/description/text()')[1],
+				startdate = xpath.selectNodes(xml_tree, '/anime/startdate/text()')[1],
+				enddate = xpath.selectNodes(xml_tree, '/anime/enddate/text()')[1],
+				type = xpath.selectNodes(xml_tree, '/anime/type/text()')[1],
+			}
+
+			for k,v in next, input do
+				cache:hset(anidbkey, k, v)
+			end
+
+			if input.enddate then
+				cache:expire(anidbkey, 604800)
+			end
+
+			cache:quit()
+			bunraku:Log('info', 'Successfully added anime: %s.', input.title)
 		end
 	)
 	cache:hdel(anidbkey, "fetching")
