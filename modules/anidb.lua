@@ -7,14 +7,39 @@ require'redis'
 local _M = {}
 _M.queue = {}
 
+local tableHasValue = function(table, value)
+	if type(table) ~= 'table' then return end
+
+	for _,v in next, table do
+		if v == value then return true end
+	end
+end
+
 _M.timer = ev.Timer.new(function(loop, timer, revents)
 	if _M.queue[1] then
-		_M:Fetch(_M.queue[1])
-		table.remove(_M.queue, 1)
+		_M:Fetch(table.remove(_M.queue, 1))
 	else
 		timer:stop(loop)
 	end
 end, 2, 2)
+
+function _M:Queue(aid)
+	local cache = Redis.connect('127.0.0.1', 6379)
+	if not cache then
+		return bunraku:Log('error', 'Unable to connect to cache database')
+	end
+
+	local aid = tonumber(aid)
+	local key = "anidb:"..aid
+	if cache:exists(key) and (cache:ttl(key) > 3600) then
+		bunraku:Log('info', 'Cache already exists for: %s.', cache:hget(key, 'title'))
+	elseif tableHasValue(_M.queue, id) then
+		bunraku:Log('info', 'Request for AniDB id %s is already queued', aid)
+	else
+		table.insert(_M.queue, aid)
+	end
+	cache:quit()
+end
 
 function _M:Fetch(aid, forceupdate)
 	local cache = Redis.connect('127.0.0.1', 6379)
