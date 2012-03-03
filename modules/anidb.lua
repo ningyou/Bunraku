@@ -59,12 +59,12 @@ function _M:Fetch(aid, forceupdate)
 				end
 
 				local input = {
-					title = (xpath.selectNodes(xml_tree, '/anime/titles/title[@type="main"]/text()')[1] or nil),
-					episodecount = (xpath.selectNodes(xml_tree, '/anime/episodecount/text()')[1] or nil),
-					description = (xpath.selectNodes(xml_tree, '/anime/description/text()')[1] or nil),
-					startdate = (xpath.selectNodes(xml_tree, '/anime/startdate/text()')[1] or nil),
-					enddate = (xpath.selectNodes(xml_tree, '/anime/enddate/text()')[1] or nil),
-					type = (xpath.selectNodes(xml_tree, '/anime/type/text()')[1] or nil),
+					title = xpath.selectNodes(xml_tree, '/anime/titles/title[@type="main"]/text()')[1],
+					episodecount = xpath.selectNodes(xml_tree, '/anime/episodecount/text()')[1],
+					description = xpath.selectNodes(xml_tree, '/anime/description/text()')[1],
+					startdate = xpath.selectNodes(xml_tree, '/anime/startdate/text()')[1],
+					enddate = xpath.selectNodes(xml_tree, '/anime/enddate/text()')[1],
+					type = xpath.selectNodes(xml_tree, '/anime/type/text()')[1],
 				}
 
 				for k,v in next, input do
