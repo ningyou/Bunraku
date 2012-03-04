@@ -34,7 +34,7 @@ function _M:Queue(data, force)
 	for i = 2, #data do
 		local aid = tonumber(data[i])
 		local key = "anidb:"..aid
-		if cache:exists(key) and (cache:ttl(key) > 86400) and not force then
+		if cache:exists(key) and (cache:ttl(key) > 86400 or cache:ttl(key) == -1) and not force then
 			bunraku:Log('info', 'Cache already exists for: %s.', cache:hget(key, 'title'))
 		elseif tableHasValue(_M.queue, id) then
 			bunraku:Log('info', 'Request for AniDB id %s is already queued', aid)
@@ -80,7 +80,7 @@ function _M:Fetch(aid)
 				cache:hset(anidbkey, k, v)
 			end
 
-			if input.enddate then
+			if not input.enddate then
 				cache:expire(anidbkey, 604800)
 			else
 				cache:persist(anidbkey)
