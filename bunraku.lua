@@ -120,6 +120,7 @@ function bunraku:Init()
 	if not self.init then
 		self.modules = {
 			"anidb",
+			"moviedb",
 		}
 		
 		self.ctx = zmq.init(1)
@@ -132,6 +133,8 @@ function bunraku:Init()
 		self.control = assert(loadfile('core/control.lua'))(bunraku)
 		self.control:start(loop)
 	end
+
+	self.apikey = assert(loadfile('config/apikey.lua'))(bunraku)
 
 	self.init = true
 
