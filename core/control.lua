@@ -9,7 +9,6 @@ local commands = {
 		bunraku:Reload()
 	end,
 	load = function(name)
-		print("Loading: " .. name)
 		bunraku:LoadModule(name)
 	end,
 	cachemem = function()
