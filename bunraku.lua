@@ -140,7 +140,7 @@ function bunraku:Init()
 
 	self.s_io_idle = ev.Idle.new(function()
 		local msg, err = self.socket:recv(zmq.NOBLOCK)
-		if err == "timeout" then
+		if err == then
 			self.s_io_idle:stop(loop)
 			self.s_io_read:start(loop)
 			return
