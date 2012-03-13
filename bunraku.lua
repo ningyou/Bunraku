@@ -23,9 +23,10 @@ local csv = require"csv"
 local loop = ev.Loop.default
 local db = mongo.Connection.New()
 local socket = require"socket"
-require'logging.console'
+require'logging.file'
 
-local log = logging.console()
+-- XXX: Temporary location.
+local log = logging.file('/tmp/bunraku.log')
 db:connect"localhost"
 
 local bunraku = {
