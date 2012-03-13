@@ -57,7 +57,7 @@ function bunraku:HandleMsg(data)
 	if not data then
 		return self:Log('error', 'Unable to parse CSV')
 	end
-	
+
 	local mName = data[1]
 	if not self[mName] then
 		return self:Log('error', 'Trying to use module that is not loaded: %s', mName)
@@ -133,7 +133,7 @@ function bunraku:Init()
 			"anidb",
 			"moviedb",
 		}
-		
+
 		self.ctx = zmq.init(1)
 		self.socket = self.ctx:socket(zmq.SUB)
 		self.socket:setopt(zmq.SUBSCRIBE, "")
@@ -162,7 +162,7 @@ function bunraku:Init()
 	self.s_io_read = ev.IO.new(function()
 		self.s_io_idle:start(loop)
 		self.s_io_read:stop(loop)
-	end, 
+	end,
 	self.socket:getopt(zmq.FD), ev.READ)
 
 	self:LoadModules()
