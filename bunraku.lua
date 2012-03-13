@@ -5,6 +5,17 @@ package.path = table.concat({
 	'',
 }, ';') .. package.path
 
+local nixio = require'nixio'
+
+-- Bootstrap the daemon
+do
+	local pid = nixio.fork()
+	if(pid ~= 0) then
+		print(string.format("Forking into the background as: %d", pid))
+		os.exit()
+	end
+end
+
 local zmq = require"zmq"
 local mongo = require"mongo"
 local ev = require"ev"
