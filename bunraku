@@ -99,7 +99,7 @@ function bunraku:LoadModules()
 end
 
 function bunraku:Reload()
-	local coreFunc, coreError = loadfile'bunraku.lua'
+	local coreFunc, coreError = loadfile'bunraku'
 	if not coreFunc then
 		return self:Log('error', 'Unable to reload core: %s.', coreError)
 	end
@@ -134,6 +134,7 @@ function bunraku:Init()
 		self.modules = {
 			"anidb",
 			"moviedb",
+			"tvdb",
 		}
 
 		self.ctx = zmq.init(1)
