@@ -7,13 +7,16 @@ package.path = table.concat({
 }, ';') .. package.path
 
 local nixio = require'nixio'
+local reload = ...
 
 -- Bootstrap the daemon
-do
-	local pid = nixio.fork()
-	if(pid ~= 0) then
-		print(string.format("Forking into the background as: %d", pid))
-		os.exit()
+if not reload then
+	do
+		local pid = nixio.fork()
+		if(pid ~= 0) then
+			print(string.format("Forking into the background as: %d", pid))
+			os.exit()
+		end
 	end
 end
 
@@ -104,7 +107,7 @@ function bunraku:Reload()
 		return self:Log('error', 'Unable to reload core: %s.', coreError)
 	end
 
-	local success, message = pcall(coreFunc)
+	local success, message = pcall(coreFunc, true)
 	if not success then
 		return self:Log('error', 'Unable to execute new core: %s.', message)
 	else
@@ -130,18 +133,16 @@ function bunraku:Reload()
 end
 
 function bunraku:Init()
-	if not self.init then
-		self.modules = {
-			"anidb",
-			"moviedb",
-			"tvdb",
-		}
+	self.modules = {
+		"anidb",
+		"moviedb",
+		"tvdb",
+	}
 
-		self.ctx = zmq.init(1)
-		self.socket = self.ctx:socket(zmq.SUB)
-		self.socket:setopt(zmq.SUBSCRIBE, "")
-		self.socket:bind"ipc:///tmp/bunraku.sock"
-	end
+	self.ctx = zmq.init(1)
+	self.socket = self.ctx:socket(zmq.SUB)
+	self.socket:setopt(zmq.SUBSCRIBE, "")
+	self.socket:bind"ipc:///tmp/bunraku.sock"
 
 	if not self.control then
 		self.control = assert(loadfile('core/control.lua'))(bunraku)
@@ -150,7 +151,6 @@ function bunraku:Init()
 
 	self.apikey = assert(loadfile('config/apikey.lua'))(bunraku)
 
-	self.init = true
 
 	self.s_io_idle = ev.Idle.new(function()
 		local msg, err = self.socket:recv(zmq.NOBLOCK)
@@ -171,12 +171,14 @@ function bunraku:Init()
 	self:LoadModules()
 end
 
-bunraku:Init()
+if not reload then
+	bunraku:Init()
 
-bunraku.s_io_idle:start(bunraku.loop)
-bunraku:Log('info', "Bunraku loaded, let the show begin.")
+	bunraku.s_io_idle:start(bunraku.loop)
+	bunraku:Log('info', "Bunraku loaded, let the show begin.")
 
-bunraku.loop:loop()
+	bunraku.loop:loop()
+end
 
 return bunraku
 -- vim: ft=lua
