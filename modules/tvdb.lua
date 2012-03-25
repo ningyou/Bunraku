@@ -73,12 +73,6 @@ function _M:Fetch(id)
 
 			local ids = xpath.selectNodes(xml_tree, '/Data/Episode/id/text()')
 			local seasons = xpath.selectNodes(xml_tree, '/Data/Episode[id='..ids[#ids]..']/SeasonNumber/text()')[1]
-			local season = {}
-
-			for i = 1, tonumber(seasons) do
-				local st = xpath.selectNodes(xml_tree, '/Data/Episode[SeasonNumber='..i..']/')
-				season[i] = #st
-			end
 
 			local input = {
 				title = xpath.selectNodes(xml_tree, '/Data/Series/SeriesName/text()')[1],
@@ -88,12 +82,13 @@ function _M:Fetch(id)
 				seasons = tonumber(seasons),
 			}
 
-			for k,v in next, season do
-				cache:hset(key, "episodecount_season" .. k, v)
-			end
-
 			for k,v in next, input do
 				cache:hset(key, k, v)
+			end
+
+			for i = 1, tonumber(seasons) do
+				local st = xpath.selectNodes(xml_tree, '/Data/Episode[SeasonNumber='..i..']/')
+				cache:hset(key, "episodecount_season" .. i, #st)
 			end
 
 			if input.status == "Continuing" then
