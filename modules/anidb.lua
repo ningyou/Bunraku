@@ -69,7 +69,10 @@ function _M:Fetch(id)
 			
 			local err = xpath.selectNodes(xml_tree, '/error/text()')[1]
 			if err then
-				if err == "Banned" then
+				if err == "Anime not found" then
+					cache:hset(key, "error", "Not Found")
+					cache:expire(key, 172800)
+				elseif err == "Banned" then
 					_M.queue = nil
 					_M.queue = {}
 					_M.timer:stop(loop)
