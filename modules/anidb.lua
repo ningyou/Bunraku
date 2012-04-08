@@ -25,6 +25,13 @@ _M.timer = ev.Timer.new(function(loop, timer, revents)
 	end
 end, 2, 2)
 
+_M.banned = ev.Timer.new(function(loop, timer, revents)
+	if _M.queue[1] then
+		_M.timer:start(loop)
+	end
+	bunraku:Log('info', '1 hour since ban. Resuming queue')
+end, 3600)
+
 function _M:Queue(data, force)
 	local cache = Redis.connect('127.0.0.1', 6379)
 	if not cache:ping() then
@@ -42,7 +49,7 @@ function _M:Queue(data, force)
 			table.insert(_M.queue, id)
 		end
 	end
-	if _M.queue[1] and not _M.timer:is_active() then
+	if _M.queue[1] and not _M.timer:is_active() and not _M.banned:is_active() then
 		_M.timer:start(loop)
 	end
 	cache:quit()
@@ -76,6 +83,7 @@ function _M:Fetch(id)
 					_M.queue = nil
 					_M.queue = {}
 					_M.timer:stop(loop)
+					_M.banned:start(loop)
 				end
 				return bunraku:Log('error', err)
 			end
