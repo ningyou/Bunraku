@@ -69,6 +69,11 @@ function _M:Fetch(id)
 			
 			local err = xpath.selectNodes(xml_tree, '/error/text()')[1]
 			if err then
+				if err == "Banned" then
+					_M.queue = nil
+					_M.queue = {}
+					_M.timer:stop(loop)
+				end
 				return bunraku:Log('error', err)
 			end
 
