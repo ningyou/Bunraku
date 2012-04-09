@@ -83,7 +83,7 @@ function _M:Fetch(id)
 					_M.queue = nil
 					_M.queue = {}
 					_M.timer:stop(loop)
-					_M.banned:start(loop)
+					_M.banned:again(loop, 3600)
 				end
 				return bunraku:Log('error', err)
 			end
