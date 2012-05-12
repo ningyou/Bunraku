@@ -2,7 +2,7 @@ local simplehttp = require'simplehttp'
 local ev = require'ev'
 local loop = ev.Loop.default
 local json = require'json'
-require'redis'
+local redis = require'redis'
 
 local _M = {}
 _M.queue = {}
@@ -24,7 +24,7 @@ _M.timer = ev.Timer.new(function(loop, timer, revents)
 end, 2, 2)
 
 function _M:Queue(data, force)
-	local cache = Redis.connect('127.0.0.1', 6379)
+	local cache = redis.connect('127.0.0.1', 6379)
 	if not cache:ping() then
 		return bunraku:Log('error', 'Unable to connect to cache database')
 	end
@@ -48,7 +48,7 @@ function _M:Queue(data, force)
 end
 
 function _M:Fetch(id)
-	local cache = Redis.connect('127.0.0.1', 6379)
+	local cache = redis.connect('127.0.0.1', 6379)
 	local id = tonumber(id)
 	local key = "moviedb:"..id
 	simplehttp(

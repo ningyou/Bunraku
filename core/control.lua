@@ -12,7 +12,7 @@ local commands = {
 		bunraku:LoadModule(name)
 	end,
 	cachemem = function()
-		local cache = Redis.connect('127.0.0.1', 6379)
+		local cache = redis.connect('127.0.0.1', 6379)
 		bunraku:Log('info', 'Cache memory in use/peak: %s/%s', cache:info()["used_memory_human"], cache:info()["used_memory_peak_human"])
 		cache:quit()
 	end,

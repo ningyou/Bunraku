@@ -4,7 +4,7 @@ local lom = require'lxp.lom'
 local zlib = require'zlib'
 local ev = require'ev'
 local loop = ev.Loop.default
-require'redis'
+local redis = require'redis'
 
 local _M = {}
 _M.queue = {}
@@ -33,7 +33,7 @@ _M.banned = ev.Timer.new(function(loop, timer, revents)
 end, 3600)
 
 function _M:Queue(data, force)
-	local cache = Redis.connect('127.0.0.1', 6379)
+	local cache = redis.connect('127.0.0.1', 6379)
 	if not cache:ping() then
 		return bunraku:Log('error', 'Unable to connect to cache database')
 	end
@@ -56,7 +56,7 @@ function _M:Queue(data, force)
 end
 
 function _M:Fetch(id)
-	local cache = Redis.connect('127.0.0.1', 6379)
+	local cache = redis.connect('127.0.0.1', 6379)
 	local id = tonumber(id)
 	local key = "anidb:"..id
 	
